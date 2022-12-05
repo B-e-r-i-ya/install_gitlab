@@ -1,0 +1,13 @@
+---
+# vars file for roles/install_gitlab
+EE_RPM: https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh
+EE_SH: https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh
+URL: http://gitlab.example.local
+URL_registry: http://registry.example.local
+URL_registry_port: 5005
+backup_dir: /mnt/backup01 #директори для backup
+
+#vars for restore
+pach_backup: /mnt/c/Users/khramov/Documents/ansible/backup_gitlab/
+name_backup: 1666141377_2022_10_19_15.4.2-ee
+#file_backup: /mnt/backup01/1666080711_2022_10_18_15.4.2-ee_gitlab_backup.tar

@@ -1,0 +1,122 @@
+---
+# tasks file for roles/install_gitlab
+- name: Install RedHat
+  block:
+  - name: permit traffic in default zone for https service
+    firewalld:
+      port: "{{ item }}" 
+        #- "{{URL_registry_port}}"
+      permanent: yes
+      state: enabled
+    loop:
+      - 80/tcp
+      - 443/tcp
+
+  - name: Установка приложений
+    dnf:
+      name:
+        - curl
+        - policycoreutils
+        - postfix
+      state: latest
+
+  - name: Install RPM
+    shell: curl "{{CE_RPM}}" | sudo bash
+
+  - name: Устанавливаем gitlab
+    dnf:
+      name:
+        - gitlab-ce
+      environment:
+        EXTERNAL_URL: "{{ URL }}"
+      state: latest
+
+  - name: Конфигурируем gitlab
+    template:
+            src: gitlab.rb.j2
+            dest: /etc/gitlab/gitlab.rb
+            owner: root
+            group: root
+            mode: 0660
+  - shell: gitlab-ctl reconfigure
+
+  when: ansible_os_family == "RedHat"
+
+- name: Install Debian
+  block:
+  - name: Install packeg
+    apt:
+      name: "{{ item }}"
+      state: latest
+    loop:
+      - curl 
+      - openssh-server
+      - ca-certificates
+      - tzdata 
+      - perl
+      - postfix
+  - name: instal repo
+    shell: "curl {{ EE_SH }} | sudo bash"
+
+  - name: Install Gitlab
+    apt:
+      update_cache: yes
+    
+  - apt:
+      name: gitlab-ee
+      #environment:
+      #  GITLAB_ROOT_PASSWORD: "BSqr1988ZD"
+      state: latest
+
+  - name: Конфигурируем gitlab
+    template:
+      src: gitlab.rb.j2
+      dest: /etc/gitlab/gitlab.rb
+      owner: root
+      group: root
+      mode: 0660
+  - shell: gitlab-ctl reconfigure
+
+  - name: directory for script
+    ansible.builtin.file:
+      path: /root/script
+      state: directory
+      recurse: yes
+      owner: root
+      group: root
+      mode: 750
+
+  - name: gitlab backup script
+    template:
+      src: gitlab_backup.sh.j2
+      dest: /root/script/gitlab_backup.sh
+      owner: root
+      group: root
+      mode: 0660
+
+  - name: directory for backup
+    ansible.builtin.file:
+      path: "{{ backup_dir }}"
+      state: directory
+      recurse: yes
+      owner: git
+      group: git
+      mode: u=rw,g=rw,o=rw
+
+  - name: cron tasks
+    ansible.builtin.cron:
+      name: "gitlab backup"
+      minute: "0"
+      hour: "6"
+      job: "root /root/scripts/gitlab_backup.sh"
+
+  - name: Password root
+    shell: "cat /etc/gitlab/initial_root_password|grep Password:|awk '{print$2}'"
+    register: Password
+  - debug:
+      msg: "{{ Password.stdout_lines }}"
+
+  when: ansible_os_family == "Debian"
+
+
+

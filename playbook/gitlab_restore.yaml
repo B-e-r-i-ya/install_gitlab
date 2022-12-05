@@ -1,0 +1,45 @@
+---
+- name: Install gitlab
+  hosts: mysqltest
+  remote_user: root
+  roles:
+    - install_gitlab
+  tasks:
+
+  - name: directory for script
+    ansible.builtin.file:
+      path: /mnt/backup01/gitlab_backups
+      state: directory
+      recurse: yes
+      owner: git
+      group: git
+      mode: 750
+
+  - name: Copy file with owner and permissions
+    ansible.builtin.copy:
+      src: "{{ pach_backup }}{{ name_backup }}_gitlab_backup.tar"
+      dest: "/var/opt/gitlab/backups/{{ name_backup }}_gitlab_backup.tar"
+      owner: git
+      group: git
+      mode: 770
+
+  - name: restore gitlab
+    shell: "gitlab-ctl stop unicorn"
+  - shell: 
+      "gitlab-ctl stop sidekiq"
+    ignore_errors: yes
+  - shell: 
+      "echo yes|gitlab-backup restore BACKUP={{ name_backup }}"
+    ignore_errors: yes
+
+  - name: Copy file with owner and permissions
+    ansible.builtin.copy:
+      src: "{{ file_backup_secrets }}"
+      dest: "/etc/gitlab/gitlab-secrets.json"
+      owner: git
+      group: git
+      mode: 770
+
+  - shell: "gitlab-ctl start sidekiq && gitlab-ctl start unicorn && gitlab-ctl reconfigure"
+
+

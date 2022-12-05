@@ -1,0 +1,6 @@
+#!/bin/bash
+
+#gitlab-rake gitlab:backup:create
+gitlab-backup create
+cp /etc/gitlab/gitlab-secrets.json '{{backup_dir}}/gitlab-secrets.json'
+tar --remove-files -cvzf -P 1234567 $date_gitlab.tar.gz 

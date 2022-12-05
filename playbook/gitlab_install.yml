@@ -1,0 +1,6 @@
+---
+- name: Install gitlab
+  hosts: mysqltest
+  remote_user: root
+  roles:
+    - install_gitlab

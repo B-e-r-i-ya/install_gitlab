@@ -1,0 +1,25 @@
+external_url '{{URL}}'
+#nginx['listen_port'] = 80
+#nginx['listen_https'] = true
+
+
+#registry_external_url '{{URL_registry}}:{{URL_registry_port}}'
+#gitlab_rails['registry_enabled'] = true
+#registry['enable'] = true
+#registry_nginx['enable'] = true
+#registry_nginx['proxy_set_headers'] = {
+# "Host" => "$http_host",
+# "X-Real-IP" => "$remote_addr",
+# "X-Forwarded-For" => "$proxy_add_x_forwarded_for",
+# "X-Forwarded-Proto" => "https",
+# "X-Forwarded-Ssl" => "on"
+# }
+#registry_nginx['listen_port'] = {{URL_registry_port}}
+#registry_nginx['listen_https'] = true
+
+gitlab_rails['backup_upload_connection'] = {
+ :provider => 'Local',
+ :local_root => '{{backup_dir}}'
+}
+gitlab_rails['backup_upload_remote_directory'] = 'gitlab_backups'
+gitlab_rails['backup_keep_time'] = 604800
